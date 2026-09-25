@@ -454,6 +454,7 @@ nav {
   grid-template-columns: 1fr;
   gap: 36px;
   padding-block: 48px;
+  align-items: start;   /* ← add this line */
 }
 
 @media (min-width: 768px) {
@@ -462,9 +463,6 @@ nav {
     gap: 56px;
     align-items: center;
   }
-  /* screenshot on right for reverse rows */
-  .feature-row--reverse .feature-screenshot { order: 2; }
-  .feature-row--reverse .feature-text       { order: 1; }
 }
 
 .feature-screenshot {
@@ -473,7 +471,12 @@ nav {
   border: 2px solid var(--card-border);
   box-shadow: 0 12px 48px rgba(0,0,0,.4);
 }
-.feature-screenshot img { width: 100%; display: block; }
+
+.feature-screenshot img {
+  width: 100%;
+  height: auto;        /* ← make it explicit, don't rely on default */
+  display: block;
+}
 
 .feature-text h2  { font-size: clamp(1.3rem, 3vw, 1.7rem); margin-bottom: 14px; }
 .feature-text > p { margin-bottom: 18px; font-size: .95rem; }
