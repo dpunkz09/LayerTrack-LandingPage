@@ -1,0 +1,224 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Features"
+  description="Complete feature list for LayerTrack — egg production tracking, flock management, feed receipts, sales, and ROI calculator."
+  currentPath="/features"
+>
+
+  <div class="page-hero">
+    <div class="container">
+      <h1>Features</h1>
+      <p>Everything LayerTrack does, explained in plain language.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container prose">
+
+      <p>
+        LayerTrack is an offline-first poultry farm management app for Android.
+        Everything runs on-device — no account required, no internet connection needed.
+      </p>
+
+      <!-- ── Dashboard ─────────────────────────────────────────── -->
+      <h2>Dashboard</h2>
+      <p>The home screen gives you an at-a-glance view of your entire operation.</p>
+
+      <h3>Today's Summary</h3>
+      <ul>
+        <li>Total eggs collected today</li>
+        <li>Actual revenue from sales recorded today</li>
+        <li>Eggs sold, feed used (kg), and feed cost for the day</li>
+        <li><em>If all collected eggs were sold</em> estimate — shows projected revenue, cost, and profit based on your saved tray prices</li>
+      </ul>
+
+      <h3>Last 7 Days Production Chart</h3>
+      <ul>
+        <li>Bar chart showing daily egg collection for the past week</li>
+      </ul>
+
+      <h3>This Month</h3>
+      <ul>
+        <li>Eggs collected, revenue, and feed cost for the current calendar month</li>
+        <li>Profit or loss figure with trend indicator</li>
+      </ul>
+
+      <h3>All-Time Egg Sales</h3>
+      <ul>
+        <li>Total revenue, total feed cost, and net profit from all sales ever recorded</li>
+        <li>Average selling price per egg</li>
+      </ul>
+
+      <h3>Unsold Eggs — Potential Value</h3>
+      <ul>
+        <li>Running count of eggs collected but not yet sold, broken down by size</li>
+        <li>Set per-tray prices to see potential revenue, allocated feed cost, and potential profit</li>
+        <li>Prices are saved and reused automatically</li>
+      </ul>
+
+      <h3>Return on Investment (ROI)</h3>
+      <ul>
+        <li>Enter your startup capital once (housing, cages, birds, other expenses)</li>
+        <li>Actual ROI %: <code>(all-time revenue − all-time feed cost − startup investment) ÷ startup investment × 100</code></li>
+        <li>Net profit after investment (positive = recovered + in profit, negative = still owed)</li>
+        <li>Historical payback period based on average monthly profit since day one</li>
+        <li>Projected payback period based on most recent 7-day daily profit rate — useful even on day one</li>
+      </ul>
+
+      <h3>Flock Overview</h3>
+      <ul>
+        <li>Active flock count and total live bird count</li>
+      </ul>
+
+      <h3>Quick Actions</h3>
+      <ul>
+        <li>One-tap shortcuts to Records, Flocks, Feed, and Sales</li>
+      </ul>
+
+      <!-- ── Flocks ─────────────────────────────────────────────── -->
+      <h2>Flocks</h2>
+      <p>Track each group of birds separately through their entire lifecycle.</p>
+
+      <h3>Flock List</h3>
+      <ul>
+        <li>View all flocks or filter to active only</li>
+        <li>Each card shows name, breed, current bird count, acquisition date, and active status</li>
+      </ul>
+
+      <h3>Flock Detail</h3>
+      <ul>
+        <li>Full flock profile: name, breed, initial count, current count, acquisition date, notes</li>
+        <li>Toggle active / inactive status at any time</li>
+        <li>Event history with bird count impact shown per entry</li>
+      </ul>
+
+      <h3>Flock Events</h3>
+      <p>Log anything that changes your flock — seven event types:</p>
+      <ul>
+        <li><strong>Mortality</strong> — birds that died (reduces count)</li>
+        <li><strong>Cull</strong> — birds removed from production (reduces count)</li>
+        <li><strong>Bird Sale</strong> — birds sold off (reduces count)</li>
+        <li><strong>Bird Purchase</strong> — new birds added (increases count)</li>
+        <li><strong>Vaccination</strong> — record vaccination dates (no count change)</li>
+        <li><strong>Medication</strong> — record medication treatments (no count change)</li>
+        <li><strong>Other</strong> — any other notable event</li>
+      </ul>
+      <ul>
+        <li>Each event records the date, number of birds affected, and optional notes</li>
+        <li>Current bird count updates automatically with each event</li>
+      </ul>
+
+      <!-- ── Records ────────────────────────────────────────────── -->
+      <h2>Records</h2>
+      <p>A three-tab calendar view covering production, feed consumption, and sales — all in one place.</p>
+
+      <h3>Production Tab</h3>
+      <ul>
+        <li>Month-view calendar with each day highlighted when egg data exists for the selected flock</li>
+        <li>Navigate backwards and forwards month by month</li>
+        <li>Switch between your active flocks using the dropdown</li>
+        <li>Tap any day to see all entries — per-flock log with size breakdown (Small / Medium / Large / XL)</li>
+        <li>Cracked egg count and daily mortality are shown when recorded</li>
+        <li>Live "sellable eggs" total updates as you type</li>
+      </ul>
+
+      <h3>Feed Tab</h3>
+      <ul>
+        <li>Calendar showing days when feed consumption was logged</li>
+        <li>Available feed stock indicator at the top</li>
+        <li>Choose feed per bird from preset amounts: 70g, 75g, 80g, 85g, 90g, 95g, 100g, 105g, 110g</li>
+        <li>Total feed kg calculated automatically from gram rate × flock bird count</li>
+        <li>Estimated cost shown based on most recent feed receipt price</li>
+      </ul>
+
+      <h3>Sale Tab</h3>
+      <ul>
+        <li>Calendar showing days when sales were recorded</li>
+        <li>Optional customer selection (walk-in supported)</li>
+        <li>Per-size quantity and price fields: Small, Medium, Large, Extra Large</li>
+        <li>Payment method: Cash, Transfer, Credit, Other</li>
+        <li>Available egg inventory shown per size to avoid overselling</li>
+        <li>Live revenue total preview</li>
+      </ul>
+
+      <!-- ── Feed / Receipts ────────────────────────────────────── -->
+      <h2>Feed / Receipts</h2>
+      <p>Track your feed supply from purchase through consumption.</p>
+
+      <h3>Inventory Summary</h3>
+      <ul>
+        <li>Current available feed stock in kg (purchased minus consumed)</li>
+        <li>Stock status color indicator: normal, low (&lt; 20 kg), or empty</li>
+        <li>Estimated stock value based on most recent purchase price</li>
+        <li>Total purchased, total consumed, and current price per kg</li>
+      </ul>
+
+      <h3>Feed Receipts</h3>
+      <ul>
+        <li>Log every bag or batch of feed purchased</li>
+        <li>Fields: date, feed type/brand, supplier, quantity (kg), total cost</li>
+        <li>Cost per kg calculated and stored automatically</li>
+        <li>Edit or delete any receipt</li>
+      </ul>
+
+      <!-- ── Sales / Customers ──────────────────────────────────── -->
+      <h2>Sales / Customers</h2>
+      <p>Manage the people you sell to and keep a full transaction history.</p>
+
+      <h3>Customer List</h3>
+      <ul>
+        <li>Filter active or all customers</li>
+        <li>Each card shows name, phone, and address</li>
+      </ul>
+
+      <h3>Customer Profile</h3>
+      <ul>
+        <li>Name, phone number, address, notes</li>
+        <li>Active / inactive status</li>
+        <li>Full transaction history for that customer</li>
+      </ul>
+
+      <h3>Sales Transactions</h3>
+      <ul>
+        <li>View today's sales or all sales across all time</li>
+        <li>Each transaction: date, total revenue, total eggs, payment method, customer name, per-size breakdown</li>
+        <li>Edit or delete any transaction</li>
+      </ul>
+
+      <!-- ── Settings ───────────────────────────────────────────── -->
+      <h2>Settings</h2>
+      <ul>
+        <li>Toggle between Dark Mode and Light Mode — takes effect immediately</li>
+        <li>App version, developer contact, and links to legal documents</li>
+      </ul>
+
+      <!-- ── Data & Privacy ─────────────────────────────────────── -->
+      <h2>Data &amp; Privacy</h2>
+      <ul>
+        <li>All data stored locally on your device using a Room (SQLite) database</li>
+        <li>No internet connection required for any feature</li>
+        <li>No account or sign-in needed</li>
+        <li>Nothing is transmitted to any server</li>
+      </ul>
+
+      <!-- ── Egg size grades ────────────────────────────────────── -->
+      <h2>Egg Size Grades</h2>
+      <p>LayerTrack uses four sellable size grades that match standard commercial classification:</p>
+      <table>
+        <thead><tr><th>Grade</th><th>Label</th></tr></thead>
+        <tbody>
+          <tr><td>Small</td><td>S</td></tr>
+          <tr><td>Medium</td><td>M</td></tr>
+          <tr><td>Large</td><td>L</td></tr>
+          <tr><td>Extra Large</td><td>XL</td></tr>
+        </tbody>
+      </table>
+      <p>Cracked eggs are tracked separately and excluded from sellable counts. A tray is 30 eggs.</p>
+
+    </div>
+  </section>
+
+</BaseLayout>

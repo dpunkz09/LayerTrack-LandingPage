@@ -1,0 +1,524 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Release metadata — edit .env to update without touching this file
+const APK_URL     = import.meta.env.PUBLIC_APK_URL     ?? 'https://github.com/dpunkz09/LayerTrack/releases/download/poultry/LayerTrack.v1.0.apk';
+const APK_NAME    = import.meta.env.PUBLIC_APK_NAME    ?? 'LayerTrack.v1.0.apk';
+const APP_VERSION = import.meta.env.PUBLIC_APP_VERSION ?? '1.0';
+const APP_SIZE    = import.meta.env.PUBLIC_APP_SIZE    ?? '15.1 MB';
+---
+
+<BaseLayout
+  title="Download"
+  description="Download LayerTrack APK for Android — free, offline poultry farm management app."
+  currentPath="/download"
+>
+
+  <section class="dl-page">
+    <div class="container">
+
+      <!-- ── Download card ──────────────────────────────────────── -->
+      <div class="dl-card" id="dl-card">
+
+        <!-- App identity -->
+        <div class="dl-identity">
+          <img src="/images/logo_dark.webp" alt="LayerTrack icon" class="dl-appicon" width="64" height="64" />
+          <div>
+            <h1 class="dl-appname">LayerTrack</h1>
+            <p class="dl-apptag">Poultry Farm Manager</p>
+          </div>
+        </div>
+
+        <hr class="dl-divider" />
+
+        <!-- File meta -->
+        <div class="dl-meta">
+          <div class="dl-meta-item">
+            <span class="material-icons dl-meta-icon">android</span>
+            <div>
+              <span class="dl-meta-label">Platform</span>
+              <span class="dl-meta-value">Android (APK)</span>
+            </div>
+          </div>
+          <div class="dl-meta-item">
+            <span class="material-icons dl-meta-icon">new_releases</span>
+            <div>
+              <span class="dl-meta-label">Version</span>
+              <span class="dl-meta-value">{APP_VERSION}</span>
+            </div>
+          </div>
+          <div class="dl-meta-item">
+            <span class="material-icons dl-meta-icon">folder_zip</span>
+            <div>
+              <span class="dl-meta-label">File size</span>
+              <span class="dl-meta-value">{APP_SIZE}</span>
+            </div>
+          </div>
+          <div class="dl-meta-item">
+            <span class="material-icons dl-meta-icon">sell</span>
+            <div>
+              <span class="dl-meta-label">Price</span>
+              <span class="dl-meta-value" style="color:var(--teal);">Free</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="dl-divider" />
+
+        <!-- Download progress / button area -->
+        <div class="dl-action" id="dl-action">
+
+          <!-- Idle state -->
+          <div class="dl-idle" id="dl-idle">
+            <button class="btn btn-primary dl-btn" id="dl-btn">
+              <span class="material-icons">download</span>
+              Download APK &nbsp;<span class="dl-size-tag">{APP_SIZE}</span>
+            </button>
+            <p class="dl-filename">
+              <span class="material-icons" style="font-size:15px;color:var(--text-secondary);">insert_drive_file</span>
+              {APK_NAME}
+            </p>
+          </div>
+
+          <!-- In-progress state (hidden until clicked) -->
+          <div class="dl-progress-wrap hidden" id="dl-progress-wrap" aria-hidden="true">
+            <div class="dl-progress-top">
+              <span class="material-icons dl-spin">downloading</span>
+              <div class="dl-progress-info">
+                <span class="dl-progress-name">{APK_NAME}</span>
+                <span class="dl-progress-status" id="dl-status">Starting download…</span>
+              </div>
+            </div>
+            <div class="dl-bar-track">
+              <div class="dl-bar-fill" id="dl-bar"></div>
+            </div>
+          </div>
+
+          <!-- Done state (hidden until complete) -->
+          <div class="dl-done hidden" id="dl-done" aria-hidden="true">
+            <span class="material-icons dl-done-icon">check_circle</span>
+            <div>
+              <p class="dl-done-title">Download complete</p>
+              <p class="dl-done-sub">
+                Open your Android file manager or browser downloads to install.
+                You may need to allow installs from unknown sources in your Android settings.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <hr class="dl-divider" />
+
+        <!-- Install instructions -->
+        <div class="dl-instructions">
+          <h2>
+            <span class="material-icons" style="font-size:18px;">info</span>
+            How to install
+          </h2>
+          <ol>
+            <li>
+              <span class="dl-step-num">1</span>
+              <span>Tap <strong>Download APK</strong> above — the file will save to your Downloads folder.</span>
+            </li>
+            <li>
+              <span class="dl-step-num">2</span>
+              <span>Open the downloaded <strong>{APK_NAME}</strong> file from your file manager or notification tray.</span>
+            </li>
+            <li>
+              <span class="dl-step-num">3</span>
+              <span>If prompted, allow <strong>Install unknown apps</strong> for your browser or file manager in Android Settings.</span>
+            </li>
+            <li>
+              <span class="dl-step-num">4</span>
+              <span>Tap <strong>Install</strong> and launch LayerTrack once installed.</span>
+            </li>
+          </ol>
+        </div>
+
+        <!-- Google Play alternative -->
+        <div class="dl-alt">
+          <p>Prefer the Play Store?</p>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.jpaworx.layertrack"
+            class="btn btn-outline dl-play-btn"
+            data-play
+          >
+            <span class="material-icons" style="font-size:18px;">open_in_new</span>
+            Get it on Google Play
+          </a>
+        </div>
+
+      </div><!-- /.dl-card -->
+
+      <!-- Security note -->
+      <p class="dl-security-note">
+        <span class="material-icons" style="font-size:15px;color:var(--teal);">verified_user</span>
+        APK is served directly from the official
+        <a href="https://github.com/dpunkz09/LayerTrack/releases" target="_blank" rel="noopener">GitHub releases</a>
+        page. LayerTrack does not collect any data — see our
+        <a href="/privacy">Privacy Policy</a>.
+      </p>
+
+    </div>
+  </section>
+
+</BaseLayout>
+
+<script define:vars={{ APK_URL, APK_NAME }}>
+  const btn      = document.getElementById('dl-btn');
+  const idle     = document.getElementById('dl-idle');
+  const progWrap = document.getElementById('dl-progress-wrap');
+  const doneEl   = document.getElementById('dl-done');
+  const statusEl = document.getElementById('dl-status');
+  const barEl    = document.getElementById('dl-bar');
+
+  // AbortController lets us cancel both the fetch AND the pagehide listener
+  let fetchAc = null;
+
+  function setProgress(pct) {
+    barEl.style.width = pct + '%';
+    statusEl.textContent = pct < 100 ? `Downloading… ${pct}%` : 'Finishing up…';
+  }
+
+  function showDone() {
+    progWrap.classList.add('hidden');
+    progWrap.setAttribute('aria-hidden', 'true');
+    doneEl.classList.remove('hidden');
+    doneEl.removeAttribute('aria-hidden');
+  }
+
+  async function startDownload() {
+    idle.classList.add('hidden');
+    progWrap.classList.remove('hidden');
+    progWrap.removeAttribute('aria-hidden');
+
+    // Create a fresh AbortController for this download attempt
+    fetchAc = new AbortController();
+    const { signal } = fetchAc;
+
+    // Cancel the in-flight fetch if the user navigates away mid-download
+    window.addEventListener('pagehide', () => fetchAc?.abort(), { once: true });
+
+    let reader = null;
+
+    try {
+      const resp = await fetch(APK_URL, { signal });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const contentLength = resp.headers.get('content-length');
+      const total         = contentLength ? parseInt(contentLength, 10) : 0;
+      reader              = resp.body.getReader();
+      const chunks        = [];
+      let received        = 0;
+
+      setProgress(0);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        if (total > 0) {
+          setProgress(Math.min(Math.round((received / total) * 100), 99));
+        } else {
+          barEl.classList.add('indeterminate');
+        }
+      }
+
+      setProgress(100);
+
+      const blob = new Blob(chunks);
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = APK_NAME;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      setTimeout(showDone, 600);
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        // User navigated away — silently cancel, no fallback needed
+        return;
+      }
+      // Network / other error — fall back to direct link
+      console.warn('Streaming download failed, falling back to direct link:', err);
+      const a    = document.createElement('a');
+      a.href     = APK_URL;
+      a.download = APK_NAME;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setProgress(100);
+      setTimeout(showDone, 1200);
+
+    } finally {
+      // Always release the stream reader so the response body can be GC'd
+      try { await reader?.cancel(); } catch (_) { /* ignore */ }
+      fetchAc = null;
+    }
+  }
+
+  btn.addEventListener('click', startDownload);
+</script>
+
+<style>
+/* ── Download page layout ───────────────────────────────────── */
+.dl-page {
+  padding-block: 48px 64px;
+  min-height: calc(100dvh - 64px - 1px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.dl-page .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.dl-card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+@media (max-width: 480px) { .dl-card { padding: 24px 18px; } }
+
+/* ── Identity ───────────────────────────────────────────────── */
+.dl-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+.dl-appicon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.dl-appname {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+.dl-apptag {
+  font-size: .85rem;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+  line-height: 1;
+}
+
+/* ── Dividers ───────────────────────────────────────────────── */
+.dl-divider {
+  border: none;
+  border-top: 1px solid var(--card-border);
+  margin: 0;
+}
+
+/* ── Meta grid ──────────────────────────────────────────────── */
+.dl-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding-block: 20px;
+}
+.dl-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 8px;
+}
+.dl-meta-icon {
+  font-size: 20px !important;
+  color: var(--teal);
+  flex-shrink: 0;
+}
+.dl-meta-item div { display: flex; flex-direction: column; gap: 1px; }
+.dl-meta-label { font-size: .72rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; }
+.dl-meta-value { font-size: .9rem; font-weight: 600; color: var(--text-primary); }
+
+/* ── Download action area ───────────────────────────────────── */
+.dl-action { padding-block: 24px; display: flex; flex-direction: column; gap: 12px; }
+
+.dl-idle { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.dl-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 1rem;
+  padding: 14px 24px;
+  border-radius: 12px;
+  gap: 10px;
+}
+.dl-btn .material-icons { font-size: 20px !important; }
+.dl-size-tag {
+  background: rgba(0,0,0,.2);
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.dl-filename {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .82rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Progress */
+.dl-progress-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+.dl-progress-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dl-spin {
+  font-size: 28px !important;
+  color: var(--teal);
+  animation: spin 1.4s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.dl-progress-info { display: flex; flex-direction: column; gap: 3px; }
+.dl-progress-name { font-size: .875rem; font-weight: 600; color: var(--text-primary); }
+.dl-progress-status { font-size: .8rem; color: var(--text-secondary); }
+
+.dl-bar-track {
+  height: 6px;
+  background: var(--card-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.dl-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--teal);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.dl-bar-fill.indeterminate {
+  width: 40% !important;
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
+@keyframes indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+/* Done */
+.dl-done {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(60,184,174,.07);
+  border: 1px solid rgba(60,184,174,.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+.dl-done-icon { font-size: 28px !important; color: var(--teal); flex-shrink: 0; }
+.dl-done-title { font-size: .95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+.dl-done-sub   { font-size: .82rem; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+/* Hide utility */
+.hidden { display: none !important; }
+
+/* ── Install instructions ───────────────────────────────────── */
+.dl-instructions { padding-block: 22px; }
+
+.dl-instructions h2 {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+.dl-instructions ol {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dl-instructions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: .875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.dl-step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--teal-alpha, rgba(60,184,174,.12));
+  border: 1px solid rgba(60,184,174,.3);
+  color: var(--teal);
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.dl-instructions strong { color: var(--text-primary); font-weight: 600; }
+
+/* ── Play Store alt ─────────────────────────────────────────── */
+.dl-alt {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.dl-alt p { font-size: .85rem; margin: 0; }
+.dl-play-btn { font-size: .875rem; padding: 10px 20px; }
+
+/* ── Security note ──────────────────────────────────────────── */
+.dl-security-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.6;
+  margin: 0;
+}
+.dl-security-note .material-icons { vertical-align: middle; }
+.dl-security-note a { color: var(--teal); }
+</style>

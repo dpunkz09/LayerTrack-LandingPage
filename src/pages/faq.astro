@@ -1,0 +1,224 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const faqCategories = [
+  {
+    title: 'Getting Started',
+    items: [
+      {
+        q: 'Do I need an account to use LayerTrack?',
+        a: 'No. The app works entirely offline with no sign-in required. Just install and start entering your records.',
+      },
+      {
+        q: 'Does LayerTrack need an internet connection?',
+        a: 'No. All features — production logging, feed tracking, sales, and the dashboard — work without a network connection. Nothing is sent to a server.',
+      },
+      {
+        q: 'What happens to my data if I uninstall the app?',
+        a: 'All records are stored in a local database on your device. Uninstalling the app deletes that database. We recommend using Android\'s system backup (Google One Backup) to protect your data before uninstalling or switching devices.',
+      },
+      {
+        q: 'Is LayerTrack free?',
+        a: 'Yes.',
+      },
+    ],
+  },
+  {
+    title: 'Flocks',
+    items: [
+      {
+        q: 'How do I add a new flock?',
+        a: 'Go to the <strong>Flocks</strong> tab and tap the <strong>+</strong> button in the bottom right corner. Enter your flock\'s name, breed, initial bird count, and acquisition date.',
+      },
+      {
+        q: 'Can I track more than one flock at a time?',
+        a: 'Yes. You can create as many flocks as you need. Each flock maintains its own production records, bird count history, and event log.',
+      },
+      {
+        q: 'How does the bird count stay up to date?',
+        a: 'The current bird count starts at the initial count you entered when creating the flock. Every time you log a flock event that affects the headcount — mortality, culls, bird sales, or purchases — the count updates automatically.',
+      },
+      {
+        q: 'What is a flock event?',
+        a: 'A flock event records anything significant that happens to a flock: deaths, culls, vaccinations, medication, birds sold off, or new birds added. Events that affect headcount are signed — purchases increase the count, all others decrease it.',
+      },
+      {
+        q: 'How do I mark a flock as inactive?',
+        a: 'Open the flock\'s detail screen and toggle the <strong>Active</strong> switch to off. Inactive flocks are hidden from the active filter on the flock list and from the flock dropdown in the Records screen.',
+      },
+    ],
+  },
+  {
+    title: 'Egg Production',
+    items: [
+      {
+        q: 'How do I log eggs for a day?',
+        a: 'Go to <strong>Records</strong>, make sure you\'re on the <strong>Production</strong> tab, and tap the day on the calendar. Tap <strong>Add Entry</strong> in the day detail sheet, select a flock, enter counts per size grade, and save.',
+      },
+      {
+        q: 'What egg size grades does LayerTrack use?',
+        a: 'Small, Medium, Large, and Extra Large. These map to the standard four commercial size grades.',
+      },
+      {
+        q: 'What is a cracked egg?',
+        a: 'Cracked eggs are eggs that cannot be sold. They\'re tracked separately from sellable eggs so they don\'t inflate your production counts but are still visible in the entry for reference.',
+      },
+      {
+        q: 'Can I log production for multiple flocks on the same day?',
+        a: 'Yes. You can add a separate entry per flock for the same date. The day detail sheet shows all entries and their totals combined.',
+      },
+      {
+        q: 'Can I go back and edit a previous day\'s entry?',
+        a: 'Yes. Navigate to that month on the calendar, tap the day, and tap the edit icon on any existing entry.',
+      },
+    ],
+  },
+  {
+    title: 'Feed',
+    items: [
+      {
+        q: 'How do I track my feed stock?',
+        a: 'Log each bag or batch of feed you purchase as a <strong>Feed Receipt</strong> (accessible from the Receipts tab or the Feed tab in Records). The app subtracts your daily consumption logs from total receipts to show your current available stock.',
+      },
+      {
+        q: 'Why is my feed stock shown in red?',
+        a: 'A red indicator means your available feed stock is at or below zero. An amber/orange indicator means it\'s below 20 kg. Restock by adding a new receipt.',
+      },
+      {
+        q: 'How does the per-bird feed selector work?',
+        a: 'When logging daily consumption, you choose how many grams each bird received (70g to 110g in 5g steps). The app multiplies that by the current bird count of the selected flock to calculate the total kg automatically.',
+      },
+      {
+        q: 'How is the estimated feed cost calculated?',
+        a: 'The app uses the unit price from your most recently added feed receipt (cost per kg) and multiplies it by the consumption quantity.',
+      },
+    ],
+  },
+  {
+    title: 'Sales',
+    items: [
+      {
+        q: 'Do I have to link a sale to a customer?',
+        a: 'No. You can log a sale without a customer — it\'s treated as a walk-in transaction. Customer is optional on every sale entry.',
+      },
+      {
+        q: 'How do I track what a specific customer owes?',
+        a: 'Go to the <strong>Sales</strong> tab (Customers), open the customer\'s profile, and you\'ll see their full transaction history. Payment method is recorded per transaction (Cash, Transfer, Credit, or Other) so you can identify outstanding credit sales.',
+      },
+      {
+        q: 'Can I set different prices per size?',
+        a: 'Yes. Every sale entry has separate price fields for Small, Medium, Large, and Extra Large. Prices are not locked to a global setting — you set the price at the time of each sale.',
+      },
+      {
+        q: 'What is the difference between the price fields in Sales and the tray prices on the Dashboard?',
+        a: 'Dashboard tray prices are used only to estimate the potential value of unsold eggs (Unsold Eggs — Potential section). Prices in sale transactions are the actual prices you charged for that specific order.',
+      },
+    ],
+  },
+  {
+    title: 'Dashboard',
+    items: [
+      {
+        q: 'What does the ROI percentage mean?',
+        a: 'ROI (Return on Investment) shows how much of your startup capital you have recovered through profits. Formula: <code>(all-time revenue − all-time feed cost − startup investment) ÷ startup investment × 100</code>. A positive % means you\'re in profit above your original investment. A negative % means you have not yet recovered the full investment.',
+      },
+      {
+        q: 'What is the difference between "Avg Payback" and "Est. Payback"?',
+        a: '<strong>Avg Payback</strong> is calculated from your average monthly profit across your entire operation history. It\'s more stable over time but can look unrealistically long when you\'re just starting out. <strong>Est. Payback</strong> is projected using your daily profit rate from the last 7 days. Even on day one, this gives a realistic estimate based on what you\'re actually earning right now.',
+      },
+      {
+        q: 'The ROI card says "—" for everything. What do I do?',
+        a: 'Tap <strong>Set Costs</strong> on the ROI card and enter your startup capital (housing, cages, bird purchase price, and any other initial expenses). The ROI calculations only run once an investment amount is entered.',
+      },
+      {
+        q: 'The "If all collected were sold" estimate doesn\'t show up. Why?',
+        a: 'This estimate only appears if: (a) eggs were collected today, and (b) you have set tray prices (go to the Unsold Eggs section on the Dashboard and tap <strong>Set Prices</strong>). Once both conditions are met, the estimate shows automatically.',
+      },
+      {
+        q: 'The unsold egg count seems wrong. How is it calculated?',
+        a: 'Unsold eggs = total eggs collected across all time (all flocks, all logs) minus total eggs sold across all time (all sale transactions). If you have a stock of eggs from before you started using LayerTrack, you can add a sale entry dated before your first log to adjust the count.',
+      },
+    ],
+  },
+  {
+    title: 'Settings & Appearance',
+    items: [
+      {
+        q: 'How do I switch between dark and light mode?',
+        a: 'Go to <strong>Settings</strong> (gear icon on the Dashboard top bar) and toggle the <strong>Dark Mode</strong> switch. The change takes effect immediately.',
+      },
+      {
+        q: 'I accidentally set the wrong theme during onboarding. Can I change it?',
+        a: 'Yes. Go to Settings at any time and toggle the theme switch.',
+      },
+      {
+        q: 'I want to reset and see the onboarding again. How?',
+        a: 'The app stores a flag locally when onboarding is completed. You can clear the app\'s data (Android Settings → Apps → LayerTrack → Storage → Clear Data) to reset it. Note: this will also delete all your farm records.',
+      },
+    ],
+  },
+  {
+    title: 'Contact & Support',
+    items: [
+      {
+        q: 'I found a bug. How do I report it?',
+        a: 'Email <a href="mailto:dpunkz09@gmail.com">dpunkz09@gmail.com</a> with a description of what happened and what you expected to happen. Screenshots are very helpful.',
+      },
+      {
+        q: 'I have a feature request.',
+        a: 'We\'d love to hear it. Send an email to <a href="mailto:dpunkz09@gmail.com">dpunkz09@gmail.com</a> or leave a review on the Play Store.',
+      },
+      {
+        q: 'Where can I follow updates?',
+        a: 'Follow <a href="https://facebook.com/jpaworx" target="_blank" rel="noopener">jpaworx on Facebook</a> or visit <a href="https://jpaworx.com" target="_blank" rel="noopener">jpaworx.com</a> for news about LayerTrack.',
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="FAQ"
+  description="Frequently asked questions about LayerTrack — getting started, flocks, egg production, feed, sales, dashboard, and settings."
+  currentPath="/faq"
+>
+
+  <div class="page-hero">
+    <div class="container">
+      <h1>Frequently Asked Questions</h1>
+      <p>Can't find your answer here? Email us at <a href="mailto:dpunkz09@gmail.com">dpunkz09@gmail.com</a>.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" style="max-width:820px;">
+      <div class="faq-section">
+        {faqCategories.map(category => (
+          <div class="faq-category">
+            <h2>{category.title}</h2>
+            {category.items.map(item => (
+              <details class="faq-item">
+                <summary>
+                  <span class="faq-q">{item.q}</span>
+                  <span class="material-icons faq-chevron" aria-hidden="true">add</span>
+                </summary>
+                <div class="faq-answer" set:html={item.a} />
+              </details>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<script>
+  // Toggle the add/remove icon when a <details> opens or closes
+  document.querySelectorAll('.faq-item').forEach(details => {
+    details.addEventListener('toggle', () => {
+      const icon = details.querySelector('.faq-chevron');
+      if (icon) icon.textContent = (details as HTMLDetailsElement).open ? 'remove' : 'add';
+    });
+  });
+</script>

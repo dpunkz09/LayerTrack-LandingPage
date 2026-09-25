@@ -1,0 +1,344 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const features = [
+  {
+    icon: 'dashboard',
+    title: 'Dashboard',
+    desc: "Today's egg count, revenue, feed cost, monthly trends, all-time profit, and ROI — all on one scrollable screen.",
+  },
+  {
+    icon: 'egg_alt',
+    title: 'Egg Production',
+    desc: 'Calendar-based daily logging with per-size grade counts (Small, Medium, Large, XL), cracked eggs, and mortality.',
+  },
+  {
+    icon: 'group',
+    title: 'Flock Management',
+    desc: 'Track multiple flocks independently. Log mortality, culls, vaccinations, purchases, and more.',
+  },
+  {
+    icon: 'inventory_2',
+    title: 'Feed Tracking',
+    desc: 'Log purchase receipts and daily consumption. See available stock in real time and calculate costs instantly.',
+  },
+  {
+    icon: 'shopping_cart',
+    title: 'Sales & Customers',
+    desc: 'Record per-size transactions with flexible pricing. Manage customer profiles and view full transaction histories.',
+  },
+  {
+    icon: 'trending_up',
+    title: 'ROI Calculator',
+    desc: 'Enter your startup capital once. Get actual ROI %, net profit, historical payback, and a 7-day projected payback.',
+  },
+];
+
+const offlinePoints = [
+  { icon: 'signal_wifi_off',  label: 'No internet needed' },
+  { icon: 'lock',             label: 'Data stays on device' },
+  { icon: 'person_off',       label: 'No account' },
+  { icon: 'money_off',        label: 'Free forever' },
+  { icon: 'block',            label: 'No ads' },
+];
+---
+
+<BaseLayout
+  title="LayerTrack"
+  description="Offline poultry farm management for Android. Track egg production, flocks, feed costs, and sales — no account, no internet needed."
+  currentPath="/"
+>
+
+  <!-- ── Hero ─────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow">
+        <span class="badge">
+          <span class="material-icons" style="font-size:14px;">verified</span>
+          Free &middot; Offline &middot; No account
+        </span>
+      </div>
+
+      <h1>
+        Your egg farm,<br />
+        <span class="teal">organized</span>.
+      </h1>
+
+      <p class="hero-sub">
+        LayerTrack replaces paper logbooks and spreadsheets with a clean,
+        fast Android app. Track production, flocks, feed, and sales — all
+        on-device with no internet connection required.
+      </p>
+
+      <div class="hero-actions">
+        <a
+          href="https://play.google.com/store/apps/details?id=com.jpaworx.layertrack"
+          class="btn btn-primary"
+          data-play
+        >
+          <span class="material-icons" style="font-size:18px;">download</span>
+          Get on Google Play
+        </a>
+        <a href="/download" class="btn btn-outline">
+          <span class="material-icons" style="font-size:18px;">android</span>
+          Direct APK
+        </a>
+        <a href="/features" class="btn btn-ghost">
+          See all features
+          <span class="material-icons" style="font-size:18px;">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Phone screenshots ─────────────────────────────────────── -->
+  <div class="phone-row-wrap">
+    <div class="phone-row">
+      <div class="phone-frame">
+        <img src="/images/ss_dark_production.jpg" alt="Egg production records screen" loading="lazy" width="1080" height="2340" />
+      </div>
+      <div class="phone-frame">
+        <img src="/images/ss_dark_flocks.jpg" alt="Flock management screen" loading="lazy" width="1080" height="2340" />
+      </div>
+      <!-- Centre frame is the LCP element — eager + fetchpriority high -->
+      <div class="phone-frame phone-frame--hero">
+        <img src="/images/ss_dark_dashboard.jpg" alt="Dashboard overview screen" loading="eager" fetchpriority="high" width="1080" height="2340" />
+      </div>
+      <div class="phone-frame">
+        <img src="/images/ss_dark_feed.jpg" alt="Feed tracking screen" loading="lazy" width="1080" height="2340" />
+      </div>
+      <div class="phone-frame">
+        <img src="/images/ss_dark_sales.jpg" alt="Sales records screen" loading="lazy" width="1080" height="2340" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Stats bar ─────────────────────────────────────────────── -->
+  <div class="container">
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="number">100%</div>
+        <div class="label">Offline</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">Free</div>
+        <div class="label">No subscription</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">4</div>
+        <div class="label">Egg size grades</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">7</div>
+        <div class="label">Flock event types</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">ROI</div>
+        <div class="label">Payback calculator</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Feature overview grid ─────────────────────────────────── -->
+  <section class="section">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Everything your layer farm needs</h2>
+        <p>Five tightly integrated modules that give you a complete picture of your operation.</p>
+      </div>
+
+      <div class="feature-grid">
+        {features.map(f => (
+          <div class="feature-card">
+            <div class="feature-icon">
+              <span class="material-icons">{f.icon}</span>
+            </div>
+            <h3>{f.title}</h3>
+            <p>{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Feature detail rows ────────────────────────────────────── -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+
+      <!-- Dashboard -->
+      <div class="feature-row">
+        <div class="feature-screenshot">
+          <img src="/images/ss_dark_dashboard.jpg" alt="LayerTrack dashboard" loading="lazy" width="1080" height="2340" />
+        </div>
+        <div class="feature-text">
+          <span class="badge" style="margin-bottom:16px;">
+            <span class="material-icons" style="font-size:13px;">dashboard</span>
+            Dashboard
+          </span>
+          <h2>Your entire operation at a glance</h2>
+          <p>Open the app and instantly see what matters today — eggs collected, revenue, feed cost, and a full estimate if every egg collected were sold.</p>
+          <ul>
+            <li>Today's eggs, revenue, feed used, and feed cost</li>
+            <li>Estimated daily revenue &amp; profit if all eggs sold</li>
+            <li>7-day production bar chart</li>
+            <li>Monthly and all-time profit summary</li>
+            <li>Unsold egg potential value with per-tray pricing</li>
+            <li>Full ROI tracker with projected payback period</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Records -->
+      <div class="feature-row feature-row--reverse">
+        <div class="feature-screenshot">
+          <img src="/images/ss_dark_production.jpg" alt="LayerTrack production records" loading="lazy" width="1080" height="2340" />
+        </div>
+        <div class="feature-text">
+          <span class="badge" style="margin-bottom:16px;">
+            <span class="material-icons" style="font-size:13px;">edit_calendar</span>
+            Records
+          </span>
+          <h2>Calendar-based logging for production, feed, and sales</h2>
+          <p>Three tabs — Production, Feed, Sale — share a single month-view calendar. Tap any day to view, add, or edit entries without leaving the screen.</p>
+          <ul>
+            <li>Month calendar with activity indicators per day</li>
+            <li>Per-flock egg entry with size breakdown</li>
+            <li>Feed consumption with per-bird gram selector (70–110g)</li>
+            <li>Sale entry with per-size pricing and payment method</li>
+            <li>Live sellable egg total preview while typing</li>
+            <li>Navigate back through any previous month</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Flocks -->
+      <div class="feature-row">
+        <div class="feature-screenshot">
+          <img src="/images/ss_dark_flocks.jpg" alt="LayerTrack flock management" loading="lazy" width="1080" height="2340" />
+        </div>
+        <div class="feature-text">
+          <span class="badge" style="margin-bottom:16px;">
+            <span class="material-icons" style="font-size:13px;">group</span>
+            Flocks
+          </span>
+          <h2>Track every flock through its full lifecycle</h2>
+          <p>Each flock has its own profile, bird count, and event log. The current count updates automatically as you record mortality, culls, purchases, and sales.</p>
+          <ul>
+            <li>Unlimited flocks, each tracked independently</li>
+            <li>7 event types: mortality, cull, bird sale/purchase, vaccination, medication, other</li>
+            <li>Active / inactive status toggle</li>
+            <li>Full event history with signed bird count changes</li>
+            <li>Breed, acquisition date, initial count, and notes</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Feed -->
+      <div class="feature-row feature-row--reverse">
+        <div class="feature-screenshot">
+          <img src="/images/ss_dark_feed.jpg" alt="LayerTrack feed receipts" loading="lazy" width="1080" height="2340" />
+        </div>
+        <div class="feature-text">
+          <span class="badge" style="margin-bottom:16px;">
+            <span class="material-icons" style="font-size:13px;">inventory_2</span>
+            Feed
+          </span>
+          <h2>From purchase receipt to daily consumption</h2>
+          <p>Log every feed purchase and track daily usage per flock. Available stock is always current: total receipts minus total consumption.</p>
+          <ul>
+            <li>Feed receipt log with supplier, brand, quantity, and cost</li>
+            <li>Cost per kg calculated automatically</li>
+            <li>Daily consumption entry with per-bird gram cards</li>
+            <li>Total kg auto-calculated from gram rate &times; flock size</li>
+            <li>Estimated cost from most recent receipt price</li>
+            <li>Red / amber / normal stock indicator</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Sales -->
+      <div class="feature-row">
+        <div class="feature-screenshot">
+          <img src="/images/ss_dark_sales.jpg" alt="LayerTrack sales records" loading="lazy" width="1080" height="2340" />
+        </div>
+        <div class="feature-text">
+          <span class="badge" style="margin-bottom:16px;">
+            <span class="material-icons" style="font-size:13px;">shopping_cart</span>
+            Sales
+          </span>
+          <h2>Flexible sales tracking with customer profiles</h2>
+          <p>Record every transaction with per-size pricing. Link to a saved customer or log as walk-in. Payment method is tracked per sale so you can identify outstanding balances.</p>
+          <ul>
+            <li>Per-size quantity and price per transaction</li>
+            <li>Optional customer linking — walk-in supported</li>
+            <li>Payment methods: Cash, Transfer, Credit, Other</li>
+            <li>Customer profile with full transaction history</li>
+            <li>Today view and all-time history</li>
+            <li>Available egg count per size shown to prevent overselling</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Offline callout ────────────────────────────────────────── -->
+  <section class="section-sm">
+    <div class="container">
+      <div class="callout">
+        <h2>Built for offline use</h2>
+        <p>
+          LayerTrack stores everything in a local SQLite database on your device.
+          No internet connection, no account, and no subscription — ever.
+          Your farm data never leaves your phone.
+        </p>
+        <div class="callout-icons">
+          {offlinePoints.map(p => (
+            <div class="callout-icon">
+              <span class="material-icons callout-icon__icon">{p.icon}</span>
+              <span class="callout-icon__label">{p.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────────────────────── -->
+  <section class="section cta-section">
+    <div class="container">
+      <h2>Ready to ditch the logbook?</h2>
+      <p>Download LayerTrack for free on Android and start recording your first flock in minutes.</p>
+      <div class="cta-download-row">
+        <a
+          href="https://play.google.com/store/apps/details?id=com.jpaworx.layertrack"
+          class="play-badge"
+          data-play
+        >
+          <span class="material-icons play-badge__icon">android</span>
+          <span class="play-badge-text">
+            <span class="small">GET IT ON</span>
+            <span class="big">Google Play</span>
+          </span>
+        </a>
+
+        <a href="/download" class="play-badge play-badge--alt">
+          <span class="material-icons play-badge__icon">apk_install</span>
+          <span class="play-badge-text">
+            <span class="small">DIRECT DOWNLOAD</span>
+            <span class="big">APK File</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

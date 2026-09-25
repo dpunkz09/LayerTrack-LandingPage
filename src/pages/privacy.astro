@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="LayerTrack Privacy Policy — your farm data stays on your device. We collect nothing."
+  currentPath="/privacy"
+>
+
+  <div class="page-hero">
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p>Last updated: September 25, 2026</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container prose">
+
+      <h2>Overview</h2>
+      <p>
+        LayerTrack is a poultry farm management app designed to work entirely on your device.
+        We built it with a simple principle: your farm data belongs to you.
+      </p>
+
+      <h2>Data We Do Not Collect</h2>
+      <p>LayerTrack does not collect, transmit, store, or share any personal information or farm data. Specifically:</p>
+      <ul>
+        <li>We do not collect your name, email address, phone number, or any other personal identifier</li>
+        <li>We do not collect your location</li>
+        <li>We do not collect farm data such as flock records, egg production logs, feed records, sales transactions, or financial figures</li>
+        <li>We do not use analytics SDKs, crash reporting services, or third-party tracking libraries</li>
+        <li>We do not serve advertisements</li>
+      </ul>
+
+      <h2>Data Stored on Your Device</h2>
+      <p>
+        All data you enter into LayerTrack — including flock records, egg production logs, feed receipts,
+        consumption records, sales transactions, customer information, and financial settings — is stored
+        locally on your device in a private SQLite database. This data:
+      </p>
+      <ul>
+        <li>Never leaves your device through the app</li>
+        <li>Is not accessible to us or any third party</li>
+        <li>Is removed when you uninstall the app (unless backed up by your device's system backup)</li>
+      </ul>
+
+      <h2>Permissions</h2>
+      <p>
+        LayerTrack does not request any sensitive device permissions. The app does not access your
+        camera, microphone, contacts, location, storage, or network connection.
+      </p>
+
+      <h2>Children's Privacy</h2>
+      <p>
+        LayerTrack does not knowingly collect information from children under 13. As the app collects
+        no data at all, there is no special risk to younger users.
+      </p>
+
+      <h2>Changes to This Policy</h2>
+      <p>
+        If a future version of LayerTrack introduces features that affect data collection or privacy,
+        this policy will be updated and the "Last updated" date will be revised. The updated policy
+        will be available in the app and on the developer's website.
+      </p>
+
+      <h2>Contact</h2>
+      <p>If you have questions about this privacy policy, please contact:</p>
+      <p>
+        <strong>Jhon Peter</strong><br />
+        Email: <a href="mailto:dpunkz09@gmail.com">dpunkz09@gmail.com</a><br />
+        Website: <a href="https://jpaworx.com" target="_blank" rel="noopener">jpaworx.com</a>
+      </p>
+
+    </div>
+  </section>
+
+</BaseLayout>

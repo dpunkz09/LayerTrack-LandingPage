@@ -1,26 +1,15 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
+import { loadEnv }      from 'vite';
 
-// https://astro.build/config
+// loadEnv reads .env (and .env.local etc.) into a plain object.
+// mode '' loads all variables regardless of NODE_ENV or prefix.
+const env = loadEnv('', process.cwd(), '');
+
 export default defineConfig({
-	integrations: [
-		starlight({
-			title: 'My Docs',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
-			sidebar: [
-				{
-					label: 'Guides',
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
-					],
-				},
-				{
-					label: 'Reference',
-					items: [{ autogenerate: { directory: 'reference' } }],
-				},
-			],
-		}),
-	],
+  site: 'https://layertrack.jpaworx.com',
+
+  server: {
+    port: parseInt(env.PORT ?? '4321', 10),
+  },
 });

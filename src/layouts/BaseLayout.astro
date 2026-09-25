@@ -1,0 +1,304 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  currentPath?: string;
+}
+
+const {
+  title,
+  description = 'LayerTrack — offline poultry farm management for Android. Track egg production, flocks, feed costs, and sales in one place.',
+  ogImage = '/images/ss_dark_dashboard.jpg',
+  currentPath = '/',
+} = Astro.props;
+
+const fullTitle   = title === 'LayerTrack' ? title : `${title} — LayerTrack`;
+const canonicalURL = new URL(currentPath, 'https://layertrack.jpaworx.com').href;
+
+const navLinks = [
+  { href: '/',          label: 'Home' },
+  { href: '/features',  label: 'Features' },
+  { href: '/faq',       label: 'FAQ' },
+  { href: '/privacy',   label: 'Privacy' },
+  { href: '/terms',     label: 'Terms' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+
+  <!-- #8 Canonical URL -->
+  <link rel="canonical" href={canonicalURL} />
+
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image"       content={ogImage} />
+  <meta property="og:site_name"   content="LayerTrack" />
+  <meta property="og:url"         content={canonicalURL} />
+
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image"       content={ogImage} />
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- #4 Non-blocking Google Fonts (print-media trick eliminates render-block)  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Icons&display=swap"
+    media="print"
+    onload="this.media='all'"
+  />
+  <!-- Fallback for JS-disabled browsers -->
+  <noscript>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Icons&display=swap"
+    />
+  </noscript>
+
+  <link rel="stylesheet" href="/styles/global.css" />
+</head>
+<body>
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav id="main-nav">
+    <div class="container nav-inner">
+
+      <a href="/" class="nav-logo">
+        <!-- #3 explicit width/height on logo so browser reserves space (no CLS) -->
+        <img src="/images/logo_dark.webp" alt="LayerTrack logo" width="30" height="30" />
+        LayerTrack
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="nav-links" id="nav-links">
+        {navLinks.map(link => (
+          <li>
+            <a href={link.href} class={currentPath === link.href ? 'active' : ''}>
+              {link.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.jpaworx.layertrack"
+            class="btn btn-primary nav-cta"
+            data-play
+          >
+            <span class="material-icons" style="font-size:16px;" aria-hidden="true">download</span>
+            Download
+          </a>
+        </li>
+      </ul>
+
+      <!-- #6 hamburger: inert on desktop so it's removed from tab order via JS -->
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer">
+        <span class="material-icons" aria-hidden="true">menu</span>
+      </button>
+
+    </div>
+
+    <!-- Mobile drawer -->
+    <div class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
+      <ul>
+        {navLinks.map(link => (
+          <li>
+            <a href={link.href} class={currentPath === link.href ? 'active' : ''}>
+              {link.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.jpaworx.layertrack"
+            class="btn btn-primary drawer-cta"
+            data-play
+          >
+            <span class="material-icons" style="font-size:18px;" aria-hidden="true">download</span>
+            Get on Google Play
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <slot />
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="/images/logo_dark.webp" alt="LayerTrack" width="26" height="26" />
+          LayerTrack
+        </div>
+        <nav class="footer-links" aria-label="Footer navigation">
+          <a href="/features">Features</a>
+          <a href="/faq">FAQ</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+          <a href="mailto:dpunkz09@gmail.com">Contact</a>
+          <a href="https://jpaworx.com" target="_blank" rel="noopener noreferrer">jpaworx.com</a>
+        </nav>
+      </div>
+      <p class="footer-copy">
+        &copy; {new Date().getFullYear()} Jhon Peter &middot;
+        LayerTrack is not affiliated with any feed brand, poultry association, or government agricultural body.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ── "Coming Soon" modal (Google Play) ─────────────────── -->
+  <div
+    id="play-modal"
+    class="play-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="play-modal-title"
+    aria-hidden="true"
+  >
+    <div class="play-modal__backdrop" id="play-modal-backdrop"></div>
+    <div class="play-modal__box">
+      <div class="play-modal__icon-wrap">
+        <span class="material-icons play-modal__gp-icon" aria-hidden="true">android</span>
+      </div>
+      <h2 class="play-modal__title" id="play-modal-title">Coming Soon</h2>
+      <p class="play-modal__body">
+        LayerTrack is not on the Google Play Store yet.<br />
+        We're working on it — check back soon!
+      </p>
+      <p class="play-modal__hint">
+        In the meantime, you can
+        <a href="/download" id="play-modal-apk-link">download the APK directly</a>.
+      </p>
+      <button class="play-modal__close btn btn-primary" id="play-modal-close">
+        <span class="material-icons" style="font-size:18px;" aria-hidden="true">close</span>
+        Got it
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ── #6 Hamburger: toggle inert on desktop ────────────────────────────────
+    const btn    = document.getElementById('hamburger') as HTMLButtonElement;
+    const drawer = document.getElementById('mobile-drawer') as HTMLElement;
+
+    function syncHamburgerInert() {
+      // inert removes the button from tab order and AT on desktop
+      if (window.innerWidth >= 768) {
+        btn.inert = true;
+      } else {
+        btn.inert = false;
+      }
+    }
+    syncHamburgerInert();
+    window.addEventListener('resize', syncHamburgerInert, { passive: true });
+
+    btn.addEventListener('click', () => {
+      const open = drawer.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+      drawer.setAttribute('aria-hidden', String(!open));
+      (btn.querySelector('.material-icons') as HTMLElement).textContent = open ? 'close' : 'menu';
+    });
+
+    drawer.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        drawer.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        drawer.setAttribute('aria-hidden', 'true');
+        (btn.querySelector('.material-icons') as HTMLElement).textContent = 'menu';
+      });
+    });
+
+    // ── #1 Modal: use AbortController to avoid listener accumulation ─────────
+    // (safe for Astro View Transitions — aborted on every page swap)
+    const ac       = new AbortController();
+    const signal   = ac.signal;
+
+    document.addEventListener(
+      'astro:before-swap',
+      () => ac.abort(),
+      { once: true }
+    );
+
+    const modal    = document.getElementById('play-modal')    as HTMLElement;
+    const backdrop = document.getElementById('play-modal-backdrop') as HTMLElement;
+    const closeBtn = document.getElementById('play-modal-close')    as HTMLButtonElement;
+    const apkLink  = document.getElementById('play-modal-apk-link') as HTMLAnchorElement;
+
+    // Track which element triggered the modal so we can restore focus on close
+    let triggerEl: HTMLElement | null = null;
+
+    function openModal(source: HTMLElement) {
+      triggerEl = source;
+      modal.removeAttribute('aria-hidden');
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+    }
+
+    function closeModal() {
+      modal.setAttribute('aria-hidden', 'true');
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      // #5 Restore focus to the element that opened the modal
+      triggerEl?.focus();
+      triggerEl = null;
+    }
+
+    // #5 Focus trap inside modal ──────────────────────────────────────────────
+    modal.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(
+        modal.querySelectorAll<HTMLElement>('a[href], button, [tabindex]:not([tabindex="-1"])')
+      ).filter(el => !el.hasAttribute('disabled'));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last  = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }, { signal });
+
+    document.querySelectorAll('[data-play]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (drawer.classList.contains('open')) {
+          drawer.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          drawer.setAttribute('aria-hidden', 'true');
+          (btn.querySelector('.material-icons') as HTMLElement).textContent = 'menu';
+        }
+        openModal(el as HTMLElement);
+      }, { signal });
+    });
+
+    closeBtn.addEventListener('click',    closeModal, { signal });
+    backdrop.addEventListener('click',    closeModal, { signal });
+    apkLink.addEventListener('click',     closeModal, { signal });
+
+    // #1 Escape key listener scoped via AbortController (no manual removeEventListener)
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    }, { signal });
+  </script>
+
+</body>
+</html>
