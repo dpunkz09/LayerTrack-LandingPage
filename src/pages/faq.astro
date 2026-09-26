@@ -175,12 +175,33 @@ const faqCategories = [
     ],
   },
 ];
+
+// FAQ schema — enables Google rich results (expandable Q&A in search)
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqCategories.flatMap(cat =>
+    cat.items.map(item => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a.replace(/<[^>]+>/g, ''), // strip HTML tags for schema
+      },
+    }))
+  ),
+};
 ---
 
 <BaseLayout
   title="FAQ"
-  description="Frequently asked questions about LayerTrack — getting started, flocks, egg production, feed, sales, dashboard, and settings."
+  description="Frequently asked questions about LayerTrack — how to track egg production, manage flocks, log feed, record sales, understand the ROI calculator, and switch themes."
+  ogImage="/images/ss_dark_flocks.jpg"
+  ogImageAlt="LayerTrack flock management screen"
+  keywords="LayerTrack FAQ, poultry app help, egg tracker questions, flock management help, farm app offline, how to track eggs android"
   currentPath="/faq"
+  jsonLd={faqJsonLd}
+>
 >
 
   <div class="page-hero">

@@ -3,18 +3,59 @@ export interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   currentPath?: string;
+  keywords?: string;
+  /** Pass a JSON-LD object to inject page-specific structured data */
+  jsonLd?: Record<string, unknown>;
 }
 
 const {
   title,
-  description = 'LayerTrack — offline poultry farm management for Android. Track egg production, flocks, feed costs, and sales in one place.',
-  ogImage = '/images/ss_dark_dashboard.jpg',
+  description = 'LayerTrack — free offline poultry farm management app for Android. Track egg production, flocks, feed costs, and sales. No account, no internet needed.',
+  ogImage    = '/images/ss_dark_dashboard.jpg',
+  ogImageAlt = 'LayerTrack app dashboard showing egg production, revenue, and feed tracking',
   currentPath = '/',
+  keywords = 'poultry farm app, egg production tracker, layer chicken management, feed tracking, flock management, android farm app, offline farm app',
+  jsonLd,
 } = Astro.props;
 
-const fullTitle   = title === 'LayerTrack' ? title : `${title} — LayerTrack`;
+const fullTitle    = title === 'LayerTrack' ? 'LayerTrack — Free Poultry Farm Management App for Android' : `${title} — LayerTrack`;
 const canonicalURL = new URL(currentPath, 'https://layertrack.jpaworx.com').href;
+const ogImageURL   = new URL(ogImage, 'https://layertrack.jpaworx.com').href;
+
+// Default site-wide JSON-LD (SoftwareApplication schema)
+const defaultJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'LayerTrack',
+  description: 'Free offline poultry farm management app for Android. Track egg production by size grade, manage multiple flocks, monitor feed inventory, record sales, and calculate ROI.',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Android',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  author: {
+    '@type': 'Person',
+    name: 'Jhon Peter',
+    url: 'https://jpaworx.com',
+  },
+  url: 'https://layertrack.jpaworx.com',
+  screenshot: ogImageURL,
+  featureList: [
+    'Egg production tracking by size grade',
+    'Multiple flock management',
+    'Feed receipt and consumption tracking',
+    'Sales and customer management',
+    'ROI and payback calculator',
+    'Offline — no internet required',
+    'Free with no subscription',
+  ],
+};
+
+const structuredData = jsonLd ?? defaultJsonLd;
 
 const navLinks = [
   { href: '/',          label: 'Home' },
@@ -30,27 +71,48 @@ const navLinks = [
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- ── Primary SEO ──────────────────────────────────────────── -->
   <title>{fullTitle}</title>
-  <meta name="description" content={description} />
+  <meta name="description"  content={description} />
+  <meta name="keywords"     content={keywords} />
+  <meta name="author"       content="Jhon Peter" />
+  <meta name="robots"       content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <link rel="canonical"     href={canonicalURL} />
 
-  <!-- #8 Canonical URL -->
-  <link rel="canonical" href={canonicalURL} />
+  <!-- ── Theme / PWA ──────────────────────────────────────────── -->
+  <meta name="theme-color"                content="#3CB8AE" />
+  <meta name="mobile-web-app-capable"     content="yes" />
+  <meta name="apple-mobile-web-app-title" content="LayerTrack" />
+  <meta name="application-name"           content="LayerTrack" />
 
+  <!-- ── Open Graph ───────────────────────────────────────────── -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content={fullTitle} />
-  <meta property="og:description" content={description} />
-  <meta property="og:image"       content={ogImage} />
   <meta property="og:site_name"   content="LayerTrack" />
   <meta property="og:url"         content={canonicalURL} />
+  <meta property="og:title"       content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image"       content={ogImageURL} />
+  <meta property="og:image:alt"   content={ogImageAlt} />
+  <meta property="og:image:width"  content="1080" />
+  <meta property="og:image:height" content="2340" />
+  <meta property="og:locale"      content="en_US" />
 
+  <!-- ── Twitter Card ─────────────────────────────────────────── -->
   <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:site"        content="@jpaworx" />
   <meta name="twitter:title"       content={fullTitle} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image"       content={ogImage} />
+  <meta name="twitter:image"       content={ogImageURL} />
+  <meta name="twitter:image:alt"   content={ogImageAlt} />
 
+  <!-- ── Structured data (JSON-LD) ────────────────────────────── -->
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <!-- ── Favicon ──────────────────────────────────────────────── -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-  <!-- #4 Non-blocking Google Fonts (print-media trick eliminates render-block)  -->
+  <!-- ── Non-blocking Google Fonts ────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -59,7 +121,6 @@ const navLinks = [
     media="print"
     onload="this.media='all'"
   />
-  <!-- Fallback for JS-disabled browsers -->
   <noscript>
     <link
       rel="stylesheet"
