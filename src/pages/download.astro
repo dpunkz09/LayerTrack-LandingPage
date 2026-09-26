@@ -1,11 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// Release metadata — edit .env to update without touching this file
-const APK_URL     = import.meta.env.PUBLIC_APK_URL     ?? 'https://github.com/dpunkz09/LayerTrack/releases/download/poultry/LayerTrack.v1.0.apk';
-const APK_NAME    = import.meta.env.PUBLIC_APK_NAME    ?? 'LayerTrack.v1.0.apk';
-const APP_VERSION = import.meta.env.PUBLIC_APP_VERSION ?? '1.0';
-const APP_SIZE    = import.meta.env.PUBLIC_APP_SIZE    ?? '15.1 MB';
+// ── Release metadata ───────────────────────────────────────────────────────
+// Update these values here when publishing a new release, then rebuild.
+// No .env needed — these are public, non-secret values.
+const APK_URL     = import.meta.env.PUBLIC_APK_URL     ?? 'https://github.com/dpunkz09/LayerTrack/releases/download/v1.1/LayerTrack.v.1.1.apk';
+const APK_NAME    = import.meta.env.PUBLIC_APK_NAME    ?? 'LayerTrack.v1.1.apk';
+const APP_VERSION = import.meta.env.PUBLIC_APP_VERSION ?? '1.1';
+const APP_SIZE    = import.meta.env.PUBLIC_APP_SIZE    ?? '16.1 MB';
 ---
 
 <BaseLayout
