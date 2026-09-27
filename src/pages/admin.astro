@@ -1,0 +1,598 @@
+---
+/**
+ * /admin — LayerTrack release metadata editor
+ *
+ * Auth flow:
+ *   GET  /admin          → login form (if not authenticated)
+ *   POST /admin?action=login  → validate password, set session cookie, redirect
+ *   GET  /admin          → editor (if cookie is valid)
+ *   POST /admin?action=update → save new APK metadata to .env, redirect back
+ *   POST /admin?action=logout → clear cookie, redirect to login
+ *
+ * Security:
+ *   • Password compared with Node's timingSafeEqual to prevent timing attacks.
+ *   • Session token = HMAC-SHA256(secret, timestamp+random).
+ *   • Cookie: HttpOnly, SameSite=Strict, Secure in production.
+ *   • .env path is resolved from import.meta.url — never user-controlled.
+ */
+
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve, dirname }  from 'node:path';
+import { fileURLToPath }     from 'node:url';
+import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
+
+// ── Paths ──────────────────────────────────────────────────────────────────
+const __dir  = dirname(fileURLToPath(import.meta.url));
+// src/pages/ → up two levels to project root
+const ROOT   = resolve(__dir, '../../');
+const DOTENV = resolve(ROOT, '.env');
+
+// ── Secrets from env ───────────────────────────────────────────────────────
+const ADMIN_PASSWORD       = import.meta.env.ADMIN_PASSWORD       ?? 'changeme';
+const ADMIN_SESSION_SECRET = import.meta.env.ADMIN_SESSION_SECRET ?? 'insecure-default';
+const SESSION_COOKIE       = 'lt_admin_session';
+const SESSION_TTL_HOURS    = 8;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+/** Create a signed session token: base64(timestamp.random).HMAC */
+function createToken(): string {
+  const payload = `${Date.now()}.${randomBytes(16).toString('hex')}`;
+  const sig     = createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('hex');
+  return `${Buffer.from(payload).toString('base64url')}.${sig}`;
+}
+
+/** Verify token signature and age. Returns true if valid. */
+function verifyToken(token: string): boolean {
+  if (!token) return false;
+  const [encodedPayload, sig] = token.split('.');
+  if (!encodedPayload || !sig) return false;
+  try {
+    const payload    = Buffer.from(encodedPayload, 'base64url').toString();
+    const expected   = createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('hex');
+    const sigBuf     = Buffer.from(sig,      'hex');
+    const expBuf     = Buffer.from(expected, 'hex');
+    if (sigBuf.length !== expBuf.length) return false;
+    if (!timingSafeEqual(sigBuf, expBuf)) return false;
+    const [ts] = payload.split('.');
+    const age  = (Date.now() - parseInt(ts, 10)) / 3_600_000;
+    return age < SESSION_TTL_HOURS;
+  } catch {
+    return false;
+  }
+}
+
+/** Compare supplied password to ADMIN_PASSWORD safely. */
+function checkPassword(supplied: string): boolean {
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(ADMIN_PASSWORD);
+  if (a.length !== b.length) {
+    // Still run to avoid timing leak
+    timingSafeEqual(Buffer.alloc(b.length), b);
+    return false;
+  }
+  return timingSafeEqual(a, b);
+}
+
+/** Parse a cookie header string into a map. */
+function parseCookies(header: string | null): Record<string, string> {
+  if (!header) return {};
+  return Object.fromEntries(
+    header.split(';').map(c => {
+      const [k, ...v] = c.trim().split('=');
+      return [k.trim(), decodeURIComponent(v.join('='))];
+    })
+  );
+}
+
+/**
+ * Read .env, update the four PUBLIC_* keys in-place, preserve everything else.
+ * Keys not already present are appended.
+ */
+function updateDotEnv(values: Record<string, string>): void {
+  let content = existsSync(DOTENV) ? readFileSync(DOTENV, 'utf8') : '';
+
+  for (const [key, value] of Object.entries(values)) {
+    const escaped = value.replace(/\n/g, '\\n');
+    const regex   = new RegExp(`^(${key}=).*$`, 'm');
+    if (regex.test(content)) {
+      content = content.replace(regex, `$1${escaped}`);
+    } else {
+      content += `\n${key}=${escaped}`;
+    }
+  }
+
+  writeFileSync(DOTENV, content, 'utf8');
+}
+
+// ── Request handling ───────────────────────────────────────────────────────
+
+const { request } = Astro;
+const cookies     = parseCookies(request.headers.get('cookie'));
+const sessionOk   = verifyToken(cookies[SESSION_COOKIE] ?? '');
+const action      = new URL(request.url).searchParams.get('action');
+const isProd      = import.meta.env.PROD;
+
+let loginError  = '';
+let saveSuccess = false;
+let saveError   = '';
+
+// ── POST handlers ──────────────────────────────────────────────────────────
+if (request.method === 'POST') {
+  const formData = await request.formData();
+
+  // ── Login ────────────────────────────────────────────────────────────────
+  if (action === 'login') {
+    const pw = formData.get('password')?.toString() ?? '';
+    if (checkPassword(pw)) {
+      const token   = createToken();
+      const maxAge  = SESSION_TTL_HOURS * 3600;
+      const secure  = isProd ? '; Secure' : '';
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location:   '/admin',
+          'Set-Cookie': `${SESSION_COOKIE}=${token}; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`,
+        },
+      });
+    } else {
+      loginError = 'Incorrect password.';
+    }
+  }
+
+  // ── Logout ───────────────────────────────────────────────────────────────
+  if (action === 'logout') {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location:   '/admin',
+        'Set-Cookie': `${SESSION_COOKIE}=; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=0`,
+      },
+    });
+  }
+
+  // ── Update metadata (requires valid session) ─────────────────────────────
+  if (action === 'update' && sessionOk) {
+    try {
+      const apkUrl  = formData.get('PUBLIC_APK_URL')?.toString().trim()     ?? '';
+      const apkName = formData.get('PUBLIC_APK_NAME')?.toString().trim()    ?? '';
+      const version = formData.get('PUBLIC_APP_VERSION')?.toString().trim() ?? '';
+      const size    = formData.get('PUBLIC_APP_SIZE')?.toString().trim()    ?? '';
+
+      if (!apkUrl || !apkName || !version || !size) {
+        saveError = 'All fields are required.';
+      } else {
+        updateDotEnv({
+          PUBLIC_APK_URL:     apkUrl,
+          PUBLIC_APK_NAME:    apkName,
+          PUBLIC_APP_VERSION: version,
+          PUBLIC_APP_SIZE:    size,
+        });
+        saveSuccess = true;
+      }
+    } catch (e: unknown) {
+      saveError = e instanceof Error ? e.message : 'Unknown error saving .env';
+    }
+  }
+}
+
+// ── Read current values to pre-fill form ───────────────────────────────────
+const currentApkUrl  = import.meta.env.PUBLIC_APK_URL     ?? '';
+const currentApkName = import.meta.env.PUBLIC_APK_NAME    ?? '';
+const currentVersion = import.meta.env.PUBLIC_APP_VERSION ?? '';
+const currentSize    = import.meta.env.PUBLIC_APP_SIZE    ?? '';
+
+// After a successful save re-read from the written file so the form shows
+// the latest values (Astro caches import.meta.env at request startup).
+let liveApkUrl  = currentApkUrl;
+let liveApkName = currentApkName;
+let liveVersion = currentVersion;
+let liveSize    = currentSize;
+
+if (saveSuccess && existsSync(DOTENV)) {
+  const raw = readFileSync(DOTENV, 'utf8');
+  const pick = (key: string) =>
+    raw.match(new RegExp(`^${key}=(.*)$`, 'm'))?.[1]?.trim() ?? '';
+  liveApkUrl  = pick('PUBLIC_APK_URL')     || liveApkUrl;
+  liveApkName = pick('PUBLIC_APK_NAME')    || liveApkName;
+  liveVersion = pick('PUBLIC_APP_VERSION') || liveVersion;
+  liveSize    = pick('PUBLIC_APP_SIZE')    || liveSize;
+}
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin — LayerTrack</title>
+
+  <!-- Reuse the same font stack as the main site -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Icons&display=swap"
+    media="print" onload="this.media='all'"
+  />
+  <link rel="stylesheet" href="/styles/global.css" />
+
+  <style>
+    /* ── Admin-only styles ─────────────────────────────────────── */
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px 64px;
+      background: var(--surface);
+    }
+
+    .admin-wrap {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* Header */
+    .admin-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .admin-header img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+    }
+    .admin-header h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .admin-header .admin-badge {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--teal);
+      background: var(--teal-alpha);
+      border: 1px solid rgba(60,184,174,.25);
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    /* Card */
+    .admin-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 28px 24px 32px;
+    }
+
+    .admin-card-title {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .admin-card-title .material-icons { font-size: 16px !important; color: var(--teal); }
+
+    /* Form fields */
+    .field {
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      letter-spacing: .04em;
+    }
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .field input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(60,184,174,.12);
+    }
+    .field input::placeholder { color: var(--text-secondary); opacity: .6; }
+
+    /* Hint below field */
+    .field-hint {
+      font-size: .75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Divider */
+    .admin-divider {
+      border: none;
+      border-top: 1px solid var(--card-border);
+      margin: 24px 0;
+    }
+
+    /* Actions row */
+    .admin-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .admin-actions .btn {
+      flex: 1;
+      justify-content: center;
+      min-width: 120px;
+    }
+    .btn-danger {
+      background: transparent;
+      border: 1.5px solid rgba(229,57,53,.4);
+      color: var(--red);
+      font-size: .85rem;
+      padding: 10px 16px;
+    }
+    .btn-danger:hover { border-color: var(--red); background: rgba(229,57,53,.07); }
+
+    /* Alerts */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border-radius: 12px;
+      padding: 13px 15px;
+      font-size: .875rem;
+      margin-bottom: 20px;
+    }
+    .alert .material-icons { font-size: 18px !important; flex-shrink: 0; margin-top: 1px; }
+    .alert-error   { background: rgba(229,57,53,.10); border: 1px solid rgba(229,57,53,.3); color: #ef9a9a; }
+    .alert-success { background: rgba(60,184,174,.10); border: 1px solid rgba(60,184,174,.3); color: var(--teal); }
+
+    /* Current-values preview */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      font-size: .82rem;
+      margin-bottom: 4px;
+    }
+    .preview-key   { color: var(--text-secondary); font-family: monospace; white-space: nowrap; }
+    .preview-value { color: var(--text-primary);   font-family: monospace; word-break: break-all; }
+
+    /* Password toggle */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+    }
+    .pw-toggle:hover { color: var(--text-primary); }
+    .pw-toggle .material-icons { font-size: 18px !important; }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .82rem;
+      color: var(--text-secondary);
+      margin-top: 20px;
+    }
+    .back-link:hover { color: var(--teal); text-decoration: none; }
+    .back-link .material-icons { font-size: 14px !important; }
+  </style>
+</head>
+<body>
+  <div class="admin-wrap">
+
+    <!-- Header -->
+    <div class="admin-header">
+      <img src="/images/logo_dark.webp" alt="LayerTrack" />
+      <h1>LayerTrack</h1>
+      <span class="admin-badge">Admin</span>
+    </div>
+
+    {!sessionOk && (
+      <div class="admin-card">
+        <p class="admin-card-title">
+          <span class="material-icons">lock</span>
+          Sign in to continue
+        </p>
+
+        {loginError && (
+          <div class="alert alert-error" role="alert">
+            <span class="material-icons">error_outline</span>
+            <span>{loginError}</span>
+          </div>
+        )}
+
+        <form method="POST" action="/admin?action=login" autocomplete="off">
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="pw-wrap">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter admin password"
+                autocomplete="current-password"
+                autofocus
+                required
+              />
+              <button type="button" class="pw-toggle" aria-label="Toggle password visibility" id="pw-toggle">
+                <span class="material-icons" id="pw-icon">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="admin-actions" style="margin-top:8px;">
+            <button type="submit" class="btn btn-primary">
+              <span class="material-icons">login</span>
+              Sign in
+            </button>
+          </div>
+        </form>
+      </div>
+    )}
+
+    {sessionOk && (
+      <div class="admin-card">
+        <p class="admin-card-title">
+          <span class="material-icons">edit_note</span>
+          APK Release Metadata
+        </p>
+
+        {saveSuccess && (
+          <div class="alert alert-success" role="status">
+            <span class="material-icons">check_circle</span>
+            <span>.env updated successfully. Changes are live immediately.</span>
+          </div>
+        )}
+
+        {saveError && (
+          <div class="alert alert-error" role="alert">
+            <span class="material-icons">error_outline</span>
+            <span>{saveError}</span>
+          </div>
+        )}
+
+        <div style="margin-bottom:20px;">
+          <p style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:10px;">
+            Current values
+          </p>
+          <div class="preview-grid">
+            <span class="preview-key">PUBLIC_APP_VERSION</span>
+            <span class="preview-value">{liveVersion}</span>
+            <span class="preview-key">PUBLIC_APK_NAME</span>
+            <span class="preview-value">{liveApkName}</span>
+            <span class="preview-key">PUBLIC_APP_SIZE</span>
+            <span class="preview-value">{liveSize}</span>
+            <span class="preview-key">PUBLIC_APK_URL</span>
+            <span class="preview-value">{liveApkUrl}</span>
+          </div>
+        </div>
+
+        <hr class="admin-divider" />
+
+        <form method="POST" action="/admin?action=update">
+          <div class="field">
+            <label for="version">App Version</label>
+            <input
+              id="version"
+              name="PUBLIC_APP_VERSION"
+              type="text"
+              value={liveVersion}
+              placeholder="e.g. 1.4"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="apkName">APK File Name</label>
+            <input
+              id="apkName"
+              name="PUBLIC_APK_NAME"
+              type="text"
+              value={liveApkName}
+              placeholder="e.g. LayerTrack.v1.4.apk"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="appSize">File Size</label>
+            <input
+              id="appSize"
+              name="PUBLIC_APP_SIZE"
+              type="text"
+              value={liveSize}
+              placeholder="e.g. 16.5 MB"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="apkUrl">APK Download URL</label>
+            <input
+              id="apkUrl"
+              name="PUBLIC_APK_URL"
+              type="url"
+              value={liveApkUrl}
+              placeholder="https://github.com/…/releases/download/v1.4/LayerTrack.v.1.4.apk"
+              required
+            />
+            <p class="field-hint">Full GitHub releases URL for the .apk file</p>
+          </div>
+
+          <div class="admin-actions" style="margin-top:24px;">
+            <button type="submit" class="btn btn-primary">
+              <span class="material-icons">save</span>
+              Save Changes
+            </button>
+          </div>
+        </form>
+
+        <hr class="admin-divider" style="margin-top:20px;" />
+
+        <form method="POST" action="/admin?action=logout" style="margin-bottom:16px;">
+          <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center;">
+            <span class="material-icons" style="font-size:16px!important;">logout</span>
+            Sign out
+          </button>
+        </form>
+
+        <p style="font-size:.78rem;color:var(--text-secondary);line-height:1.6;">
+          Changes are written directly to <code>.env</code> and take effect on the
+          <strong style="color:var(--text-primary)">next request</strong> — no rebuild or PM2 restart required.
+          To make changes survive a PM2 restart, also update
+          <code>ecosystem.config.cjs</code> <code>env_production</code>.
+        </p>
+      </div>
+    )}
+
+    <a href="/" class="back-link">
+      <span class="material-icons">arrow_back</span>
+      Back to site
+    </a>
+
+  </div>
+
+  <script>
+    // Password visibility toggle
+    const toggle = document.getElementById('pw-toggle');
+    const pwInput = document.getElementById('password') as HTMLInputElement | null;
+    const pwIcon  = document.getElementById('pw-icon');
+    toggle?.addEventListener('click', () => {
+      if (!pwInput || !pwIcon) return;
+      const show = pwInput.type === 'password';
+      pwInput.type = show ? 'text' : 'password';
+      pwIcon.textContent = show ? 'visibility_off' : 'visibility';
+    });
+  </script>
+</body>
+</html>
