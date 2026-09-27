@@ -3,31 +3,24 @@
  * /admin — LayerTrack release metadata editor
  *
  * Auth flow:
- *   GET  /admin          → login form (if not authenticated)
+ *   GET  /admin               → login form (unauthenticated) or editor (authenticated)
  *   POST /admin?action=login  → validate password, set session cookie, redirect
- *   GET  /admin          → editor (if cookie is valid)
- *   POST /admin?action=update → save new APK metadata to .env, redirect back
- *   POST /admin?action=logout → clear cookie, redirect to login
+ *   POST /admin?action=update → save new APK metadata to release.json
+ *   POST /admin?action=logout → clear session cookie, redirect
+ *
+ * Release data lives in release.json (project root).
+ * Every page request reads release.json fresh — no rebuild or PM2 restart needed.
  *
  * Security:
- *   • Password compared with Node's timingSafeEqual to prevent timing attacks.
+ *   • Password compared with Node's timingSafeEqual (no timing attacks).
  *   • Session token = HMAC-SHA256(secret, timestamp+random).
  *   • Cookie: HttpOnly, SameSite=Strict, Secure in production.
- *   • .env path is resolved from import.meta.url — never user-controlled.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, dirname }  from 'node:path';
-import { fileURLToPath }     from 'node:url';
 import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
+import { getRelease, saveRelease }                  from '../lib/release';
 
-// ── Paths ──────────────────────────────────────────────────────────────────
-const __dir  = dirname(fileURLToPath(import.meta.url));
-// src/pages/ → up two levels to project root
-const ROOT   = resolve(__dir, '../../');
-const DOTENV = resolve(ROOT, '.env');
-
-// ── Secrets from env ───────────────────────────────────────────────────────
+// ── Secrets (read once at build / process start — fine for secrets) ────────
 const ADMIN_PASSWORD       = import.meta.env.ADMIN_PASSWORD       ?? 'changeme';
 const ADMIN_SESSION_SECRET = import.meta.env.ADMIN_SESSION_SECRET ?? 'insecure-default';
 const SESSION_COOKIE       = 'lt_admin_session';
@@ -35,46 +28,37 @@ const SESSION_TTL_HOURS    = 8;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-/** Create a signed session token: base64(timestamp.random).HMAC */
 function createToken(): string {
   const payload = `${Date.now()}.${randomBytes(16).toString('hex')}`;
   const sig     = createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('hex');
   return `${Buffer.from(payload).toString('base64url')}.${sig}`;
 }
 
-/** Verify token signature and age. Returns true if valid. */
 function verifyToken(token: string): boolean {
   if (!token) return false;
   const [encodedPayload, sig] = token.split('.');
   if (!encodedPayload || !sig) return false;
   try {
-    const payload    = Buffer.from(encodedPayload, 'base64url').toString();
-    const expected   = createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('hex');
-    const sigBuf     = Buffer.from(sig,      'hex');
-    const expBuf     = Buffer.from(expected, 'hex');
+    const payload  = Buffer.from(encodedPayload, 'base64url').toString();
+    const expected = createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('hex');
+    const sigBuf   = Buffer.from(sig,      'hex');
+    const expBuf   = Buffer.from(expected, 'hex');
     if (sigBuf.length !== expBuf.length) return false;
     if (!timingSafeEqual(sigBuf, expBuf)) return false;
-    const [ts] = payload.split('.');
-    const age  = (Date.now() - parseInt(ts, 10)) / 3_600_000;
+    const age = (Date.now() - parseInt(payload.split('.')[0], 10)) / 3_600_000;
     return age < SESSION_TTL_HOURS;
   } catch {
     return false;
   }
 }
 
-/** Compare supplied password to ADMIN_PASSWORD safely. */
 function checkPassword(supplied: string): boolean {
   const a = Buffer.from(supplied);
   const b = Buffer.from(ADMIN_PASSWORD);
-  if (a.length !== b.length) {
-    // Still run to avoid timing leak
-    timingSafeEqual(Buffer.alloc(b.length), b);
-    return false;
-  }
+  if (a.length !== b.length) { timingSafeEqual(Buffer.alloc(b.length), b); return false; }
   return timingSafeEqual(a, b);
 }
 
-/** Parse a cookie header string into a map. */
 function parseCookies(header: string | null): Record<string, string> {
   if (!header) return {};
   return Object.fromEntries(
@@ -85,119 +69,74 @@ function parseCookies(header: string | null): Record<string, string> {
   );
 }
 
-/**
- * Read .env, update the four PUBLIC_* keys in-place, preserve everything else.
- * Keys not already present are appended.
- */
-function updateDotEnv(values: Record<string, string>): void {
-  let content = existsSync(DOTENV) ? readFileSync(DOTENV, 'utf8') : '';
-
-  for (const [key, value] of Object.entries(values)) {
-    const escaped = value.replace(/\n/g, '\\n');
-    const regex   = new RegExp(`^(${key}=).*$`, 'm');
-    if (regex.test(content)) {
-      content = content.replace(regex, `$1${escaped}`);
-    } else {
-      content += `\n${key}=${escaped}`;
-    }
-  }
-
-  writeFileSync(DOTENV, content, 'utf8');
-}
-
 // ── Request handling ───────────────────────────────────────────────────────
 
 const { request } = Astro;
-const cookies     = parseCookies(request.headers.get('cookie'));
-const sessionOk   = verifyToken(cookies[SESSION_COOKIE] ?? '');
-const action      = new URL(request.url).searchParams.get('action');
-const isProd      = import.meta.env.PROD;
+const cookies   = parseCookies(request.headers.get('cookie'));
+const sessionOk = verifyToken(cookies[SESSION_COOKIE] ?? '');
+const action    = new URL(request.url).searchParams.get('action');
+const isProd    = import.meta.env.PROD;
 
 let loginError  = '';
 let saveSuccess = false;
 let saveError   = '';
 
-// ── POST handlers ──────────────────────────────────────────────────────────
 if (request.method === 'POST') {
   const formData = await request.formData();
 
-  // ── Login ────────────────────────────────────────────────────────────────
+  // ── Login ──────────────────────────────────────────────────────────────
   if (action === 'login') {
     const pw = formData.get('password')?.toString() ?? '';
     if (checkPassword(pw)) {
-      const token   = createToken();
-      const maxAge  = SESSION_TTL_HOURS * 3600;
-      const secure  = isProd ? '; Secure' : '';
+      const token  = createToken();
+      const maxAge = SESSION_TTL_HOURS * 3600;
+      const secure = isProd ? '; Secure' : '';
       return new Response(null, {
         status: 302,
         headers: {
-          Location:   '/admin',
+          Location:     '/admin',
           'Set-Cookie': `${SESSION_COOKIE}=${token}; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`,
         },
       });
-    } else {
-      loginError = 'Incorrect password.';
     }
+    loginError = 'Incorrect password.';
   }
 
-  // ── Logout ───────────────────────────────────────────────────────────────
+  // ── Logout ─────────────────────────────────────────────────────────────
   if (action === 'logout') {
     return new Response(null, {
       status: 302,
       headers: {
-        Location:   '/admin',
+        Location:     '/admin',
         'Set-Cookie': `${SESSION_COOKIE}=; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=0`,
       },
     });
   }
 
-  // ── Update metadata (requires valid session) ─────────────────────────────
+  // ── Update metadata ─────────────────────────────────────────────────────
   if (action === 'update' && sessionOk) {
     try {
-      const apkUrl  = formData.get('PUBLIC_APK_URL')?.toString().trim()     ?? '';
-      const apkName = formData.get('PUBLIC_APK_NAME')?.toString().trim()    ?? '';
-      const version = formData.get('PUBLIC_APP_VERSION')?.toString().trim() ?? '';
-      const size    = formData.get('PUBLIC_APP_SIZE')?.toString().trim()    ?? '';
+      const apkUrl  = formData.get('APK_URL')?.toString().trim()     ?? '';
+      const apkName = formData.get('APK_NAME')?.toString().trim()    ?? '';
+      const version = formData.get('APP_VERSION')?.toString().trim() ?? '';
+      const size    = formData.get('APP_SIZE')?.toString().trim()    ?? '';
 
       if (!apkUrl || !apkName || !version || !size) {
         saveError = 'All fields are required.';
       } else {
-        updateDotEnv({
-          PUBLIC_APK_URL:     apkUrl,
-          PUBLIC_APK_NAME:    apkName,
-          PUBLIC_APP_VERSION: version,
-          PUBLIC_APP_SIZE:    size,
-        });
+        saveRelease({ APK_URL: apkUrl, APK_NAME: apkName, APP_VERSION: version, APP_SIZE: size });
         saveSuccess = true;
       }
     } catch (e: unknown) {
-      saveError = e instanceof Error ? e.message : 'Unknown error saving .env';
+      saveError = e instanceof Error ? e.message : 'Unknown error saving release.json';
     }
   }
 }
 
-// ── Read current values to pre-fill form ───────────────────────────────────
-const currentApkUrl  = import.meta.env.PUBLIC_APK_URL     ?? '';
-const currentApkName = import.meta.env.PUBLIC_APK_NAME    ?? '';
-const currentVersion = import.meta.env.PUBLIC_APP_VERSION ?? '';
-const currentSize    = import.meta.env.PUBLIC_APP_SIZE    ?? '';
-
-// After a successful save re-read from the written file so the form shows
-// the latest values (Astro caches import.meta.env at request startup).
-let liveApkUrl  = currentApkUrl;
-let liveApkName = currentApkName;
-let liveVersion = currentVersion;
-let liveSize    = currentSize;
-
-if (saveSuccess && existsSync(DOTENV)) {
-  const raw = readFileSync(DOTENV, 'utf8');
-  const pick = (key: string) =>
-    raw.match(new RegExp(`^${key}=(.*)$`, 'm'))?.[1]?.trim() ?? '';
-  liveApkUrl  = pick('PUBLIC_APK_URL')     || liveApkUrl;
-  liveApkName = pick('PUBLIC_APK_NAME')    || liveApkName;
-  liveVersion = pick('PUBLIC_APP_VERSION') || liveVersion;
-  liveSize    = pick('PUBLIC_APP_SIZE')    || liveSize;
-}
+// ── Read current values from release.json (always fresh) ──────────────────
+// getRelease() calls fs.readFileSync on every request, so it always reflects
+// the latest saved values — the form will show what was just saved.
+const release = getRelease();
 ---
 
 <!doctype html>
@@ -486,14 +425,14 @@ if (saveSuccess && existsSync(DOTENV)) {
             Current values
           </p>
           <div class="preview-grid">
-            <span class="preview-key">PUBLIC_APP_VERSION</span>
-            <span class="preview-value">{liveVersion}</span>
-            <span class="preview-key">PUBLIC_APK_NAME</span>
-            <span class="preview-value">{liveApkName}</span>
-            <span class="preview-key">PUBLIC_APP_SIZE</span>
-            <span class="preview-value">{liveSize}</span>
-            <span class="preview-key">PUBLIC_APK_URL</span>
-            <span class="preview-value">{liveApkUrl}</span>
+            <span class="preview-key">APP_VERSION</span>
+            <span class="preview-value">{release.APP_VERSION}</span>
+            <span class="preview-key">APK_NAME</span>
+            <span class="preview-value">{release.APK_NAME}</span>
+            <span class="preview-key">APP_SIZE</span>
+            <span class="preview-value">{release.APP_SIZE}</span>
+            <span class="preview-key">APK_URL</span>
+            <span class="preview-value">{release.APK_URL}</span>
           </div>
         </div>
 
@@ -504,9 +443,9 @@ if (saveSuccess && existsSync(DOTENV)) {
             <label for="version">App Version</label>
             <input
               id="version"
-              name="PUBLIC_APP_VERSION"
+              name="APP_VERSION"
               type="text"
-              value={liveVersion}
+              value={release.APP_VERSION}
               placeholder="e.g. 1.4"
               required
             />
@@ -516,9 +455,9 @@ if (saveSuccess && existsSync(DOTENV)) {
             <label for="apkName">APK File Name</label>
             <input
               id="apkName"
-              name="PUBLIC_APK_NAME"
+              name="APK_NAME"
               type="text"
-              value={liveApkName}
+              value={release.APK_NAME}
               placeholder="e.g. LayerTrack.v1.4.apk"
               required
             />
@@ -528,9 +467,9 @@ if (saveSuccess && existsSync(DOTENV)) {
             <label for="appSize">File Size</label>
             <input
               id="appSize"
-              name="PUBLIC_APP_SIZE"
+              name="APP_SIZE"
               type="text"
-              value={liveSize}
+              value={release.APP_SIZE}
               placeholder="e.g. 16.5 MB"
               required
             />
@@ -540,9 +479,9 @@ if (saveSuccess && existsSync(DOTENV)) {
             <label for="apkUrl">APK Download URL</label>
             <input
               id="apkUrl"
-              name="PUBLIC_APK_URL"
+              name="APK_URL"
               type="url"
-              value={liveApkUrl}
+              value={release.APK_URL}
               placeholder="https://github.com/…/releases/download/v1.4/LayerTrack.v.1.4.apk"
               required
             />
@@ -567,10 +506,8 @@ if (saveSuccess && existsSync(DOTENV)) {
         </form>
 
         <p style="font-size:.78rem;color:var(--text-secondary);line-height:1.6;">
-          Changes are written directly to <code>.env</code> and take effect on the
+          Changes are written to <code>release.json</code> and take effect on the
           <strong style="color:var(--text-primary)">next request</strong> — no rebuild or PM2 restart required.
-          To make changes survive a PM2 restart, also update
-          <code>ecosystem.config.cjs</code> <code>env_production</code>.
         </p>
       </div>
     )}
