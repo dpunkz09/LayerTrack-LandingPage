@@ -27,20 +27,6 @@ module.exports = {
       restart_delay: 3000,
       exec_mode    : 'fork',
       instances    : 1,
-
-      env_production: {
-        NODE_ENV : 'production',
-        HOST     : '127.0.0.1',
-        PORT     : 6699,
-
-        // APK release metadata — read at RUNTIME via import.meta.env
-        // in SSR mode these are real environment variables, not baked-in at build time.
-        // Update here and run: pm2 reload ecosystem.config.cjs --env production
-        PUBLIC_APK_URL     : 'https://github.com/dpunkz09/LayerTrack/releases/download/v1.1/LayerTrack.v.1.1.apk',
-        PUBLIC_APK_NAME    : 'LayerTrack.v1.1.apk',
-        PUBLIC_APP_VERSION : '1.1',
-        PUBLIC_APP_SIZE    : '16.1 MB',
-      },
     },
   ],
 };
