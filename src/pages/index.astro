@@ -10,7 +10,7 @@ const features = [
   {
     icon: 'egg_alt',
     title: 'Egg Production',
-    desc: 'Calendar-based daily logging with per-size grade counts (Small, Medium, Large, XL), cracked eggs, and mortality.',
+    desc: 'Calendar-based daily logging with per-size grade counts (Small, Medium, Large, XL, Jumbo), cracked eggs, and mortality.',
   },
   {
     icon: 'group',
@@ -26,6 +26,11 @@ const features = [
     icon: 'shopping_cart',
     title: 'Sales & Customers',
     desc: 'Record per-size transactions with flexible pricing. Manage customer profiles and view full transaction histories.',
+  },
+  {
+    icon: 'notifications_active',
+    title: 'Order Reminders',
+    desc: 'Calendar for upcoming customer orders. Set tray quantities, egg sizes, delivery times, and get push notifications.',
   },
   {
     icon: 'trending_up',
@@ -128,7 +133,7 @@ const offlinePoints = [
         <div class="label">No subscription</div>
       </div>
       <div class="stat-item">
-        <div class="number">4</div>
+        <div class="number">5</div>
         <div class="label">Egg size grades</div>
       </div>
       <div class="stat-item">
@@ -136,8 +141,8 @@ const offlinePoints = [
         <div class="label">Flock event types</div>
       </div>
       <div class="stat-item">
-        <div class="number">ROI</div>
-        <div class="label">Payback calculator</div>
+        <div class="number">🔔</div>
+        <div class="label">Order reminders</div>
       </div>
     </div>
   </div>
@@ -286,6 +291,32 @@ const offlinePoints = [
             <li>Customer profile with full transaction history</li>
             <li>Today view and all-time history</li>
             <li>Available egg count per size shown to prevent overselling</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Reminders -->
+      <div class="feature-row">
+        <div class="feature-screenshot">
+          <img src="/images/ss_dark_sales.jpg" alt="LayerTrack customer reminders calendar" loading="lazy" width="1080" height="2340" />
+        </div>
+        <div class="feature-text">
+          <span class="badge" style="margin-bottom:16px;">
+            <span class="material-icons" style="font-size:13px;">notifications_active</span>
+            Reminders
+          </span>
+          <h2>Never miss a customer order</h2>
+          <p>New dedicated Reminders tab with a monthly calendar for tracking upcoming customer orders. Set delivery dates, tray quantities, egg sizes, and pickup times — with automatic push notifications.</p>
+          <ul>
+            <li>Calendar view showing tray orders per day (e.g., "2TM/5TL" for 2 trays Medium + 5 trays Large)</li>
+            <li>Per-customer order reminders with tray count and egg size selection</li>
+            <li>Optional delivery/pickup time with clock picker</li>
+            <li>Mark orders as done with a single tap</li>
+            <li>Android push notifications at scheduled time</li>
+            <li>Dashboard notification bell shows due reminders count</li>
+            <li>Month summary banner showing total trays and pending count</li>
           </ul>
         </div>
       </div>

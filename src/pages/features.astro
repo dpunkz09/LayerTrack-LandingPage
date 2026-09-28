@@ -123,7 +123,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <li>Month-view calendar with each day highlighted when egg data exists for the selected flock</li>
         <li>Navigate backwards and forwards month by month</li>
         <li>Switch between your active flocks using the dropdown</li>
-        <li>Tap any day to see all entries — per-flock log with size breakdown (Small / Medium / Large / XL)</li>
+        <li>Tap any day to see all entries — per-flock log with size breakdown (Small / Medium / Large / Extra Large / Jumbo)</li>
         <li>Cracked egg count and daily mortality are shown when recorded</li>
         <li>Live "sellable eggs" total updates as you type</li>
       </ul>
@@ -141,7 +141,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <ul>
         <li>Calendar showing days when sales were recorded</li>
         <li>Optional customer selection (walk-in supported)</li>
-        <li>Per-size quantity and price fields: Small, Medium, Large, Extra Large</li>
+        <li>Per-size quantity and price fields: Small, Medium, Large, Extra Large, Jumbo</li>
         <li>Payment method: Cash, Transfer, Credit, Other</li>
         <li>Available egg inventory shown per size to avoid overselling</li>
         <li>Live revenue total preview</li>
@@ -191,6 +191,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <li>Edit or delete any transaction</li>
       </ul>
 
+      <h3>Order Reminders</h3>
+      <ul>
+        <li>Dedicated Reminders tab with monthly calendar view</li>
+        <li>Tap any day to view or add customer order reminders</li>
+        <li>Calendar shows tray count and egg size per day (e.g., "2TM/5TL" for 2 trays Medium + 5 trays Large)</li>
+        <li>Each reminder includes: customer, order date, tray count, egg size (Small/Medium/Large/XL/Jumbo), pickup/delivery time</li>
+        <li>Optional time picker for specific delivery times</li>
+        <li>Mark orders as done/pending with single tap</li>
+        <li>Android push notifications at scheduled time (or 8:00 AM if no time set)</li>
+        <li>Dashboard notification bell shows count of due reminders</li>
+        <li>Notification bubble lists all due reminders with quick navigation</li>
+        <li>Month summary shows total trays ordered and pending count</li>
+        <li>Auto-generated title (e.g., "2 trays of Large for Maria") or custom label</li>
+        <li>Notes field for delivery address and special instructions</li>
+      </ul>
+
       <!-- ── Settings ───────────────────────────────────────────── -->
       <h2>Settings</h2>
       <ul>
@@ -209,7 +225,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <!-- ── Egg size grades ────────────────────────────────────── -->
       <h2>Egg Size Grades</h2>
-      <p>LayerTrack uses four sellable size grades that match standard commercial classification:</p>
+      <p>LayerTrack uses five sellable size grades that match standard commercial classification:</p>
       <table>
         <thead><tr><th>Grade</th><th>Label</th></tr></thead>
         <tbody>
@@ -217,6 +233,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <tr><td>Medium</td><td>M</td></tr>
           <tr><td>Large</td><td>L</td></tr>
           <tr><td>Extra Large</td><td>XL</td></tr>
+          <tr><td>Jumbo</td><td>J</td></tr>
         </tbody>
       </table>
       <p>Cracked eggs are tracked separately and excluded from sellable counts. A tray is 30 eggs.</p>

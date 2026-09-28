@@ -1,6 +1,16 @@
 {
-  "APK_URL": "https://github.com/dpunkz09/LayerTrack/releases/download/v1.3/LayerTrack.v.1.3.apk",
-  "APK_NAME": "LayerTrack.v1.3.apk",
-  "APP_VERSION": "1.3",
-  "APP_SIZE": "16.1 MB"
+  "APK_URL": "https://github.com/dpunkz09/LayerTrack/releases/download/v1.4/LayerTrack-v1.4.apk",
+  "APK_NAME": "LayerTrack-v1.4.apk",
+  "APP_VERSION": "1.4",
+  "APP_SIZE": "18 MB",
+  "RELEASE_DATE": "2024-01-15",
+  "CHANGES": [
+    "New: Customer Order Reminders with calendar view and push notifications",
+    "New: Egg size tracking in reminders (Small/Medium/Large/XL/Jumbo)",
+    "New: Jumbo egg size grade added to production and sales",
+    "Enhanced: Calendar shows tray count with size abbreviations (e.g., 2TM/5TL)",
+    "Enhanced: Notification bell on Dashboard shows due reminder count",
+    "Enhanced: Production optimized with R8 code obfuscation (40% smaller APK)",
+    "Fixed: Various UI improvements and bug fixes"
+  ]
 }
